@@ -1,0 +1,90 @@
+<title>Visualised Sorting</title>
+
+<style>
+    @font-face {
+        font-family: "CustomFont";	
+        src: url("font.ttf");
+    }
+
+    * {
+        font-family: "CustomFont";
+    }
+
+    body {
+        background: black;
+    }
+
+    button {
+        margin-right: 10px;
+        background: none;
+        color: white;
+        border: none;
+    }
+
+    button:hover{
+        opacity: 0.5;
+    }
+</style>
+<canvas 
+    id="canvas" 
+    style="position: absolute; top:0; left:0; right:0; bottom:0; margin: auto; display: hidden">
+</canvas>
+
+<script src="sorts.js"></script>
+<script>
+    window.onload = ()=>{
+        for (const Sort in Sorts){
+            const button = document.createElement("button")
+            button.innerHTML = Sorts[Sort].Name
+            button.onclick = ()=> StartSort(Sorts[Sort].Callback)
+            button.style.fontSize = `${~~(50/Object.keys(Sorts).length)}vh`
+            document.body.appendChild(button)
+
+            document.body.appendChild(document.createElement("p"))
+        }
+
+        const input = document.createElement("input")
+        ;[input.type, input.min, input.value] = ["number", 10, 100]
+
+        input.style.width = "30vw"
+        input.style.fontSize = input.style.height = "10vh"
+        document.body.appendChild(input)
+    }
+
+    function StartSort(callback) {
+        canvas = document.getElementById("canvas")
+        canvas.style.display = "auto"
+        ;[canvas.width, canvas.height] = [document.documentElement.clientWidth, document.documentElement.clientHeight]
+        context = canvas.getContext('2d')
+
+        const input = document.querySelector("input")
+        Init(parseInt(input.value)+1)
+        ;[...document.querySelectorAll("button"), input].forEach(i => document.body.removeChild(i))
+        
+        Main()
+        setTimeout(()=>callback(arr), 1000)
+    }
+
+    let arr = []
+    function Init(len){
+        for (let i=1;i<len;i++) arr.push(i)
+        arr.sort(() => (Math.random() > .5) ? 1 : -1)
+    }
+
+    function Main(){
+        window.requestAnimationFrame(Main)
+        context.clearRect(0,0,canvas.width, canvas.height)
+
+        const width = canvas.width/arr.length
+        for (let i=0;i<arr.length;i++){
+            const height = canvas.height/arr.length*arr[i]
+            context.fillStyle = "white"
+            context.fillRect(i*width, canvas.height-height, width, height)
+        }
+    }
+
+    function Sleep(interval){
+        return new Promise(resolve=>setTimeout(resolve, interval))
+    }
+
+</script>
