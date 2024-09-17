@@ -31,7 +31,6 @@
     style="position: absolute; top:0; left:0; right:0; bottom:0; margin: auto; display: hidden">
 </canvas>
 
-<script src="Tone.js"></script>
 <script src="sorts.js"></script>
 <script>
     let arr = []
@@ -42,11 +41,10 @@
         Frozen: [],
 
         Set(a, b) {
-            ;[this.WElem, this.CElem] = [a, b]
+            [this.WElem, this.CElem] = [a, b]
         }
     }
 
-    // load menu
     window.onload = ()=>{
         for (const Sort in Sorts){
             const button = document.createElement("button")
@@ -59,14 +57,13 @@
         }
 
         const input = document.createElement("input")
-        ;[input.type, input.min, input.value] = ["number", 10, 100]
+        ;[input.type, input.min, input.max, input.value] = ["number", 2, 1000, 100]
 
         input.style.width = "30vw"
         input.style.fontSize = input.style.height = "10vh"
         document.body.appendChild(input)
     }
 
-    // start sorting the shit
     function StartSort(callback) {
         canvas = document.getElementById("canvas")
         canvas.style.display = "auto"
@@ -74,38 +71,46 @@
         context = canvas.getContext('2d')
 
         const input = document.querySelector("input")
-        Init(parseInt(input.value)+1)
+        Init(Math.max(input.min, Math.min(input.max, input.value))+1)
         ;[...document.querySelectorAll("button"), input].forEach(i => document.body.removeChild(i))
         
         Main()
         setTimeout(()=> callback(arr), 1000)
     }
-    
-    function PlayNote(midiNote, duration = '10n') {
-        midiNote+=20
 
-        const synth = new Tone.Synth().toDestination(), note = Tone.Frequency(midiNote, "midi").toNote();
-        synth.triggerAttackRelease(note, duration);
-        setTimeout(() => synth.dispose(), Tone.Time(duration).toMilliseconds());
+    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+
+    function PlayNote(value) {
+        const startFreq = 20, endFreq = 20000
+        let stepSize = Math.pow(endFreq / startFreq, 1 / arr.length)
+        const frequency = startFreq * Math.pow(stepSize, value);
+
+        const oscillator = audioContext.createOscillator();
+        oscillator.type = 'sine';
+        oscillator.frequency.setValueAtTime(frequency, audioContext.currentTime);
+        oscillator.connect(audioContext.destination);
+        oscillator.start();
+        oscillator.stop(audioContext.currentTime + 0.1);
     }
 
     function Init(len){
-        for (let i=1;i<len;i++) arr.push(i)
+        for (let i=1;i<len;i++) 
+            arr.push(i)
         arr.sort(() => (Math.random() > .5) ? 1 : -1)
     }
 
     async function EndAnim(){
         await Sleep(100)
         States.WElem = null
+
         for (let i=0;i<arr.length;i++){
             PlayNote(arr[i])
             States.Frozen.push(arr[i])
             States.CElem = arr[i]
-            await Sleep(2)
+            await Sleep(0)
         }
     }
 
-    // main graphics loop
     function Main(){
         window.requestAnimationFrame(Main)
         context.clearRect(0,0,canvas.width, canvas.height)
