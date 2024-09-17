@@ -5,7 +5,9 @@ async function BubbleSort(array){
         swapped = false
         for (let j=0;j<n-i-1;j++){
             if (array[j]>array[j+1]){
-                [array[j], array[j+1]] = [array[j+1], array[j]]
+                PlayNote(array[j])
+                States.Set(array[j], array[j+1])
+                ;[array[j], array[j+1]] = [array[j+1], array[j]]
                 swapped = true
             }
             await Delay()
@@ -13,6 +15,8 @@ async function BubbleSort(array){
         if (!swapped) 
             break;
     }
+
+    EndAnim()
 }
 
 // insertion sort
@@ -21,12 +25,16 @@ async function InsertSort(array){
         let key = array[i]
         let j = i-1
         while (j>=0 && key<array[j]){
-            array[j+1]= array[j]
+            PlayNote(array[j+1])
+            States.Set(array[j+1], array[j])
+            array[j+1] = array[j]
             j-=1
             await Delay()
         }
         array[j+1] = key
     }
+
+    EndAnim()
 }
 
 
@@ -37,7 +45,9 @@ async function Partition(array, low, high){
     for (let j=low;j<high;j++){
         if (array[j]<=pivot){
             i = i+1;
-            [array[i], array[j]] = [array[j], array[i]];
+            PlayNote(array[j])
+            States.Set(array[i], array[j])
+            ;[array[i], array[j]] = [array[j], array[i]];
         }
         await Delay()
     }
@@ -51,9 +61,12 @@ async function QuickSort(array, low, high){
 
     if (low<high){
         let pi = await Partition(array, low, high)
-        QuickSort(array, low, pi-1)
-        QuickSort(array, pi+1, high)
+        await QuickSort(array, low, pi-1)
+        await QuickSort(array, pi+1, high)
     }
+
+    if (!low && high==array.length-1)
+        EndAnim()
 }
 
 // merge sort
@@ -64,10 +77,16 @@ async function Merge(array, left, mid, right) {
     let i = j = 0, k = left;
 
     while (i < leftArray.length && j < rightArray.length) {
-        if (leftArray[i] <= rightArray[j])
+        if (leftArray[i] <= rightArray[j]){
             array[k++] = leftArray[i++]; 
-        else
+            States.Set(array[k], leftArray[i])
+        }
+        else {
             array[k++] = rightArray[j++];
+            States.Set(array[k], rightArray[j])
+        }
+
+        PlayNote(array[k])
         
         await Delay()
     }
@@ -80,7 +99,7 @@ async function Merge(array, left, mid, right) {
 }
 
 async function MergeSort(array, left = 0, right = array.length - 1) {
-    if (left >= right) 
+    if (left >= right)
         return;
 
     const mid = Math.floor((left + right) / 2);
@@ -88,6 +107,9 @@ async function MergeSort(array, left = 0, right = array.length - 1) {
     await MergeSort(array, left, mid);
     await MergeSort(array, mid + 1, right);
     await Merge(array, left, mid, right);
+
+    if (!left && right==array.length-1)
+        EndAnim()
 }
 
 

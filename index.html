@@ -23,6 +23,7 @@
 
     button:hover{
         opacity: 0.5;
+        cursor: pointer;
     }
 </style>
 <canvas 
@@ -30,8 +31,22 @@
     style="position: absolute; top:0; left:0; right:0; bottom:0; margin: auto; display: hidden">
 </canvas>
 
+<script src="Tone.js"></script>
 <script src="sorts.js"></script>
 <script>
+    let arr = []
+    const States = {
+        WElem: null,
+        CElem: null,
+        Ended: false,
+        Frozen: [],
+
+        Set(a, b) {
+            ;[this.WElem, this.CElem] = [a, b]
+        }
+    }
+
+    // load menu
     window.onload = ()=>{
         for (const Sort in Sorts){
             const button = document.createElement("button")
@@ -51,6 +66,7 @@
         document.body.appendChild(input)
     }
 
+    // start sorting the shit
     function StartSort(callback) {
         canvas = document.getElementById("canvas")
         canvas.style.display = "auto"
@@ -62,15 +78,34 @@
         ;[...document.querySelectorAll("button"), input].forEach(i => document.body.removeChild(i))
         
         Main()
-        setTimeout(()=>callback(arr), 1000)
+        setTimeout(()=> callback(arr), 1000)
+    }
+    
+    function PlayNote(midiNote, duration = '10n') {
+        midiNote+=20
+
+        const synth = new Tone.Synth().toDestination(), note = Tone.Frequency(midiNote, "midi").toNote();
+        synth.triggerAttackRelease(note, duration);
+        setTimeout(() => synth.dispose(), Tone.Time(duration).toMilliseconds());
     }
 
-    let arr = []
     function Init(len){
         for (let i=1;i<len;i++) arr.push(i)
         arr.sort(() => (Math.random() > .5) ? 1 : -1)
     }
 
+    async function EndAnim(){
+        await Sleep(100)
+        States.WElem = null
+        for (let i=0;i<arr.length;i++){
+            PlayNote(arr[i])
+            States.Frozen.push(arr[i])
+            States.CElem = arr[i]
+            await Sleep(2)
+        }
+    }
+
+    // main graphics loop
     function Main(){
         window.requestAnimationFrame(Main)
         context.clearRect(0,0,canvas.width, canvas.height)
@@ -78,13 +113,12 @@
         const width = canvas.width/arr.length
         for (let i=0;i<arr.length;i++){
             const height = canvas.height/arr.length*arr[i]
-            context.fillStyle = "white"
+            
+            context.fillStyle = States.CElem==arr[i] || States.Frozen.includes(arr[i]) ? "lime" : States.WElem==arr[i] ? "red" : "white"
             context.fillRect(i*width, canvas.height-height, width, height)
         }
     }
 
-    function Sleep(interval){
-        return new Promise(resolve=>setTimeout(resolve, interval))
-    }
+    const Sleep = (interval) => new Promise(resolve=>setTimeout(resolve, interval))
 
 </script>
