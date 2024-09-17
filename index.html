@@ -8,13 +8,14 @@
 
     * {
         font-family: "CustomFont";
+        user-select: none;
     }
 
     body {
         background: black;
     }
 
-    button {
+    button, div {
         margin-right: 10px;
         background: none;
         color: white;
@@ -46,22 +47,38 @@
     }
 
     window.onload = ()=>{
-        for (const Sort in Sorts){
-            const button = document.createElement("button")
-            button.innerHTML = Sorts[Sort].Name
-            button.onclick = ()=> StartSort(Sorts[Sort].Callback)
-            button.style.fontSize = `${~~(50/Object.keys(Sorts).length)}vh`
-            document.body.appendChild(button)
+        for (const Sort of Sorts){
+            document.body.appendChild((()=>{
+                const button = document.createElement("button")
+                button.innerHTML = Sort.Name
+                button.onclick = ()=> StartSort(Sort.Callback)
+                button.style.fontSize = `${~~(50/Sorts.length)}vh`
+                return button
+            })())
 
             document.body.appendChild(document.createElement("p"))
-        }
+        }   
 
-        const input = document.createElement("input")
-        ;[input.type, input.min, input.max, input.value] = ["number", 2, 1000, 100]
+        const input = (()=>{
+            const input = document.createElement("input")
+            ;[input.type, input.min, input.max, input.value] = ["range", 2, 1000, 100]
 
-        input.style.width = "30vw"
-        input.style.fontSize = input.style.height = "10vh"
+            input.style.width = "30vw"
+            input.style.fontSize = input.style.height = "10vh"
+
+            return input
+        })()
+
         document.body.appendChild(input)
+
+        document.body.appendChild((()=>{
+            const div = document.createElement("div")
+            div.style.fontSize = "5vh"
+            div.innerHTML = `Array Size: ${input.value}`
+            return div
+        })())
+
+        input.oninput = (e)=> document.querySelector("div").innerHTML = `Array Size: ${e.srcElement.value}`
     }
 
     function StartSort(callback) {
@@ -72,7 +89,7 @@
 
         const input = document.querySelector("input")
         Init(Math.max(input.min, Math.min(input.max, input.value))+1)
-        ;[...document.querySelectorAll("button"), input].forEach(i => document.body.removeChild(i))
+        ;[...document.querySelectorAll("button"), input, document.querySelector("div")].forEach(i => document.body.removeChild(i))
         
         Main()
         setTimeout(()=> callback(arr), 1000)

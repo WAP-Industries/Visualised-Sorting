@@ -122,9 +122,9 @@ class SortItem{
     }
 }
 
-const Sorts = {
-    Bubble: new SortItem("Bubble Sort", BubbleSort),
-    Insert: new SortItem("Insertion Sort", InsertSort),
-    Quick: new SortItem("Quick Sort", QuickSort),
-    Merge: new SortItem("Merge Sort", MergeSort)
-}
+const Sorts = [
+    new SortItem("Bubble Sort", BubbleSort),
+    new SortItem("Insertion Sort", InsertSort),
+    new SortItem("Quick Sort", QuickSort),
+    new SortItem("Merge Sort", MergeSort)
+]
